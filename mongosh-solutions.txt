@@ -1,0 +1,137 @@
+//===== Q1:
+db.createCollection("books", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["title"],
+      properties: {
+        title: {
+          bsonType: "string",
+          minLength: 1
+        }
+      }
+    }
+  }
+})
+
+
+//===== Q2:
+db.authors.insertOne({
+  name: "Author1",
+  nationality: "British"
+})
+
+
+
+//===== Q3:
+db.createCollection("logs", {
+  capped: true,
+  size: 1048576
+})
+
+
+
+//===== Q4:
+db.books.createIndex({ title: 1 })
+
+
+
+//===== Q5:
+db.books.insertOne({
+  title: "Book1",
+  author: "Ali",
+  year: 1937,
+  genres: ["Fantasy", "Adventure"]
+})
+
+
+//===== Q6:
+db.books.insertMany(["Future", "To Kill a Mockingbird", "Brave New World"])
+
+
+//===== Q7:
+db.logs.insertOne({
+  book_id: "64b5c2d8a123456ef8914",
+  action: "borrowed"
+})
+
+
+//===== Q8:
+db.books.updateOne(
+  { title: "Future" },
+  { $set: { year: 2022 } }
+)
+
+
+//===== Q9:
+db.books.findOne({ title: "Brave New World" })
+
+
+//===== Q10:
+db.books.find({ year: { $gte: 1990, $lte: 2010 } })
+
+
+//===== Q11:
+db.books.find({ genres: "Science Fiction" })
+
+
+//===== Q12:
+db.books.find({}).sort({ year: -1 }).skip(2).limit(3)
+
+
+//===== Q13:
+db.books.find({ year: { $type: "int" } })
+
+
+//===== Q14:
+db.books.find({ genres: { $nin: ["Horror", "Science Fiction"] } })
+
+
+//===== Q15:
+db.books.deleteMany({ year: { $lt: 2000 } })
+
+
+//===== Q16:
+db.books.aggregate([
+  { $match: { year: { $gt: 2000 } } },
+  { $sort: { year: -1 } },
+  { $project: { _id: 0, title: 1, author: 1, year: 1, genres: 1 } }
+])
+
+
+//===== Q17:
+db.books.aggregate([
+  { $match: { year: { $gt: 2000 } } },
+  { $project: { _id: 0, title: 1, author: 1, year: 1 } }
+])
+
+
+//===== Q18:
+db.books.aggregate([
+  { $match: { title: "The Hobbit" } },
+  { $unwind: "$genres" },
+  { $project: { _id: 0, title: 1, genres: 1 } }
+])
+
+
+//===== Q19:
+db.logs.aggregate([
+  { $addFields: { bookObjectId: { $toObjectId: "$book_id" } } },
+  {
+    $lookup: {
+      from: "books",
+      localField: "bookObjectId",
+      foreignField: "_id",
+      as: "book_details"
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      action: 1,
+      "book_details.title": 1,
+      "book_details.author": 1,
+      "book_details.year": 1
+    }
+  }
+])
